@@ -20,7 +20,7 @@ class CpuGaugeSet private(val operatingSystemMXBean: OperatingSystemMXBean) exte
       def getValue: Double = Option(osMxBean.getProcessCpuLoad).getOrElse(0L)
     })
     gauges.put("system-cpu-load-percentage", new Gauge[Double]() {
-      def getValue: Double = Option(osMxBean.getSystemCpuLoad).getOrElse(0L)
+      def getValue: Double = Option(osMxBean.getCpuLoad).getOrElse(0L)
     })
     gauges.put("system-load-average", new Gauge[Double]() {
       def getValue: Double = Option(osMxBean.getSystemLoadAverage).getOrElse(0L)

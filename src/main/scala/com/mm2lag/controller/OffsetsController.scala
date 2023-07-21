@@ -120,7 +120,7 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
   @Path("prometheus_lag")
   @Produces(Array(MediaType.TEXT_PLAIN))
   @Operation(summary = "lags in prometheus format for all source clusters")
-  def prometheusLag(): Route = path("api" / "prometheus_lag") {
+  def prometheusLag: Route = path("api" / "prometheus_lag") {
     get {
       complete {
 
@@ -137,7 +137,7 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
 
         }.sortBy(x => (x._1.clusterAlias.name, x._1.topic.name, x._1.partition))
 
-        val export = perPartition.map { case (partition, lag) =>
+        val exportLag = perPartition.map { case (partition, lag) =>
           s"""# HELP mm2_lag
              |# TYPE mm2_lag gauge
              |mm2_lag{cluster="${partition.clusterAlias.name}",topic="${partition.topic.name}",partition="${partition.partition}"} $lag
@@ -146,7 +146,7 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
 
         HttpEntity(
           MediaTypes.`text/plain` withParams Map("version" -> "0.0.4") withCharset HttpCharsets.`UTF-8`,
-          export
+          exportLag
         )
 
       }
