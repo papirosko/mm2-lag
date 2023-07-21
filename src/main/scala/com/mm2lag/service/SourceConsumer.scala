@@ -22,9 +22,9 @@ class SourceConsumer(val name: ClusterAlias,
   properties.putAll(kafkaProperties.asJava)
   properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
   properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
-  properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-  properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-  properties.put(ConsumerConfig.GROUP_ID_CONFIG, "mm2-lag-meter");
+  properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
+  properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000")
+  properties.put(ConsumerConfig.GROUP_ID_CONFIG, "mm2-lag-meter")
 
   private val consumer = new KafkaConsumer[String, String](properties)
 
@@ -42,7 +42,7 @@ class SourceConsumer(val name: ClusterAlias,
             log.trace(s"Consumer ${name.name} waked up")
 
           case NonFatal(e) =>
-            log.warn(s"Failed to process records from ${name}", e)
+            log.warn(s"Failed to process records from $name", e)
         }
       }
     }

@@ -46,7 +46,7 @@ class ClustersService extends Loggable {
 
   }
 
-  def clustersInfo = clusters
+  def clustersInfo: MM2Conf = clusters
 
   private def loadImpl(in: String): MM2Conf = {
     val mm2Conf = io.circe.yaml.parser.parse(in)

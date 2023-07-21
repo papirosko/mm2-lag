@@ -34,7 +34,7 @@ trait MetricsHandlerSupport {
   protected def collectMetrics(): Json = {
     val registry: MetricRegistry = MetricsHolder.registry
     val counters = registry.getCounters.asScala.map(x => x._1 -> Json.fromLong(x._2.getCount))
-    val meters = registry.getMeters.asScala.map(x => x._1 -> Json.fromDoubleOrString(x._2.getOneMinuteRate()))
+    val meters = registry.getMeters.asScala.map(x => x._1 -> Json.fromDoubleOrString(x._2.getOneMinuteRate))
     val gauges = registry.getGauges.asScala.map(x => x._1 -> (x._2.getValue match {
       case n: Long => Json.fromLong(n)
       case n: Int => Json.fromInt(n)

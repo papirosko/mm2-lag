@@ -51,7 +51,7 @@ class TargetConsumer(val name: ClusterAlias,
             log.trace(s"Consumer ${name.name} waked up")
 
           case NonFatal(e) =>
-            log.warn(s"Failed to process records from ${name}", e)
+            log.warn(s"Failed to process records from $name", e)
         }
 
       }
@@ -94,7 +94,7 @@ class TargetConsumer(val name: ClusterAlias,
         }
       } catch {
         case e: Exception =>
-          log.warn(s"Failed to process record ${record}", e)
+          log.warn(s"Failed to process record $record", e)
       }
 
     }
