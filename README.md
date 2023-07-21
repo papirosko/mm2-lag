@@ -1,5 +1,5 @@
 # Clusters configuration
-All configuration should be stored in a file `clusters.conf`
+All configuration should be stored in a file `clusters.yaml`
 
 Check `cluster-demo.yaml`. It contains 2 main sections.
 * `clusters` - describe each cluster. You should set cluster alias as a name of the property of `clusters` object.
