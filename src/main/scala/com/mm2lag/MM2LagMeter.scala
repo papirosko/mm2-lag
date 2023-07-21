@@ -83,14 +83,14 @@ class MM2LagMeter @Inject()(conf: AppConf,
         sourceConsumers = clusters.traffic.map(_.from).map { sourceCluster =>
           val info = clusters.clusters(sourceCluster)
           val watchedTopics = clusters.traffic.filter(_.from == sourceCluster).flatMap(_.topics).toSet
-          new SourceConsumer(ClusterAlias(sourceCluster), info, watchedTopics, offsetsStore)
+          new SourceConsumer(ClusterAlias(sourceCluster), info, watchedTopics, offsetsStore, conf)
         }
 
         targetConsumers = clusters.traffic.groupBy(x => x.to -> x.mm2OffsetsTopic)
           .map { case ((targetCluster, offsetTopic), routes) =>
           val info = clusters.clusters(targetCluster)
           new TargetConsumer(
-            ClusterAlias(targetCluster), info, offsetTopic, routes.map(_.connectorName).toSet, offsetsStore)
+            ClusterAlias(targetCluster), info, offsetTopic, routes.map(_.connectorName).toSet, offsetsStore, conf)
         }.toSeq
 
         sourceConsumers.foreach(_.start())

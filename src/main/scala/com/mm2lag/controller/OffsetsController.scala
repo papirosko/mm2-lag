@@ -100,8 +100,10 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
 
           val perTopic = sourceOffsets.groupBy(_.key.topic).map { case (topic, sourcePartitions) =>
             topic -> sourcePartitions.map { p =>
-              val targetOffset = targetOffsets.getOrElse(p.key, 0L)
-              p.offset - targetOffset
+              offsetsStore.lagForPartition(p.key).getOrElse {
+                val targetOffset = targetOffsets.getOrElse(p.key, 0L)
+                p.offset - targetOffset
+              }
             }.sum
           }
           HttpEntity(
@@ -131,8 +133,12 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
             .groupMapReduce(_.key)(_.offset) { case (a, _) => a }
 
           sourceOffsets.map { partition =>
-            val targetOffset = targetOffsets.getOrElse(partition.key, 0L)
-            partition.key -> (partition.offset - targetOffset)
+            offsetsStore.lagForPartition(partition.key)
+              .map(lag => partition.key -> lag)
+              .getOrElse {
+                val targetOffset = targetOffsets.getOrElse(partition.key, 0L)
+                partition.key -> (partition.offset - targetOffset)
+              }
           }
 
         }.sortBy(x => (x._1.clusterAlias.name, x._1.topic.name, x._1.partition))

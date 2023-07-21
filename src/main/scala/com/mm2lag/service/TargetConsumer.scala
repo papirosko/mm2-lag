@@ -1,5 +1,6 @@
 package com.mm2lag.service
 
+import com.mm2lag.config.AppConf
 import com.mm2lag.util.Loggable
 import com.mm2lag.util.metrics.MetricsSupport
 import com.mm2lag.{ClusterAlias, PartitionKey, PartitionOffsetInfo, TopicName}
@@ -20,14 +21,15 @@ class TargetConsumer(val name: ClusterAlias,
                      kafkaProperties: Map[String, String],
                      offsetTopicName: String,
                      watchConnectors: Set[String],
-                     offsetsStore: OffsetsStore) extends Loggable with MetricsSupport {
+                     offsetsStore: OffsetsStore,
+                     appConf: AppConf) extends Loggable with MetricsSupport {
 
   private val running = new AtomicBoolean(false)
   private val properties = new Properties()
   properties.putAll(kafkaProperties.asJava)
   properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
   properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
-  properties.put(ConsumerConfig.GROUP_ID_CONFIG, "mm2-lag-meter")
+  properties.put(ConsumerConfig.GROUP_ID_CONFIG, appConf.kafka.consumerGroup)
   properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
   properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
   properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "100")
@@ -40,7 +42,9 @@ class TargetConsumer(val name: ClusterAlias,
       val topicPartitions = partitions.asScala.map(p => new TopicPartition(p.topic(), p.partition())).asJava
       consumer.assign(topicPartitions)
       consumer.seekToBeginning(topicPartitions)
-      log.info(s"Collecting offset in kafka cluster ${name.name} from topic $offsetTopicName. Watching ${partitions.size()} " +
+      log.info(s"Collecting offset in kafka cluster ${name.name} from topic $offsetTopicName as " +
+        s"a consumer group='${appConf.kafka.consumerGroup}'. " +
+        s"Watching ${partitions.size()} " +
         s"partitions. Will only use entries from connectors: ${watchConnectors.mkString(", ")}")
 
       while (running.get()) {

@@ -1,5 +1,6 @@
 package com.mm2lag.service
 
+import com.mm2lag.config.AppConf
 import com.mm2lag.util.Loggable
 import com.mm2lag.util.metrics.MetricsSupport
 import com.mm2lag.{ClusterAlias, PartitionKey, PartitionOffsetInfo, TopicName}
@@ -15,7 +16,8 @@ import scala.util.control.NonFatal
 class SourceConsumer(val name: ClusterAlias,
                      kafkaProperties: Map[String, String],
                      topics: Iterable[String],
-                     offsetsStore: OffsetsStore) extends Loggable with MetricsSupport {
+                     offsetsStore: OffsetsStore,
+                     appConf: AppConf) extends Loggable with MetricsSupport {
 
   private val running = new AtomicBoolean(false)
   private val properties = new Properties()
@@ -24,19 +26,20 @@ class SourceConsumer(val name: ClusterAlias,
   properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer")
   properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
   properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000")
-  properties.put(ConsumerConfig.GROUP_ID_CONFIG, "mm2-lag-meter")
+  properties.put(ConsumerConfig.GROUP_ID_CONFIG, appConf.kafka.consumerGroup)
 
   private val consumer = new KafkaConsumer[String, String](properties)
 
   private val thread: Thread = new Thread() {
     override def run(): Unit = {
 
-      log.info(s"Collecting offset in kafka cluster ${name.name} from topics: ${topics.mkString(", ")}.")
+      log.info(s"Collecting offset in kafka cluster ${name.name} from topics: ${topics.mkString(", ")}" +
+        s"as a consumer group='${appConf.kafka.consumerGroup}'.")
 
       while (running.get()) {
         try {
           runImpl()
-          Thread.sleep(2000)
+          Thread.sleep(100)
         } catch {
           case _: WakeupException =>
             log.trace(s"Consumer ${name.name} waked up")
