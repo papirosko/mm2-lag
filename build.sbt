@@ -1,4 +1,6 @@
 import sbt.Keys._
+import scala.collection.JavaConverters._
+import scala.sys.process.Process
 
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
@@ -65,3 +67,42 @@ libraryDependencies ++= Seq(
 )
 
 enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+lazy val env = System.getenv().asScala
+
+lazy val gitBranch = {
+  env.get("CI_COMMIT_REF_NAME").map(br => {
+    println("Using gitBranch from gitlab CI: " + br)
+    br
+  }).orElse(env.get("GIT_BRANCH").map(br => {
+    val b = br.split('/').drop(1).mkString("/")
+    println("Using gitBranch from environment: " + b)
+    b
+  })).getOrElse {
+    val ver: String = Process("git" :: "rev-parse" :: "--abbrev-ref" :: "HEAD" :: Nil).!!.trim
+    println("Using gitBranch from local repository: " + ver)
+    ver
+  }
+}
+
+
+lazy val dockerRegistry = env.getOrElse("DOCKER_REGISTRY", "")
+
+Docker / packageName := env.get("CI_REGISTRY_IMAGE").map { v =>
+  if (v.startsWith(dockerRegistry)) {
+    v.substring(dockerRegistry.length + 1) // '/' in the end
+  } else {
+    v
+  }
+}.getOrElse(name.value)
+dockerBaseImage := "openjdk:17-jdk-slim"
+dockerExposedPorts := Seq(8080)
+dockerAlias := dockerAlias.value.withTag(env.get("CI_COMMIT_SHORT_SHA")
+  .orElse(env.getOrElse("CI_COMMIT_REF_SLUG", gitBranch) match {
+    case "main" => Some("latest")
+    case other => Some(other)
+  })
+)
+dockerRepository := Some(dockerRegistry).filter(_ != "")
+daemonUser := "docker"

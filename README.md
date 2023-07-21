@@ -61,3 +61,22 @@ Use `/api/lag_per_topic` endpoint to see lag values per each topic in text forma
 Use `/api/prometheus_lag` to see all lags per partition for all clusters. This endpoint can be used for prometheus 
 to grab the metrics.
 
+
+
+# Docker
+
+Build and run docker image locally:
+
+Create `clusters.yaml`.
+
+```shell
+sbt docker:publishLocal
+docker run --mount type=bind,source=$(pwd)/clusters.yaml,target=/opt/docker/clusters.yaml mm2-lag
+```
+You can mount the required files in the same way, e.g. `*.jks` files.
+
+
+Use this to push image to remote registry:
+```shell
+DOCKER_REGISTRY="gitlab.server:5050" sbt docker:publish
+```
