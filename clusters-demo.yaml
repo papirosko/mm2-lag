@@ -1,0 +1,30 @@
+clusters:
+  "source1":
+    "bootstrap.servers": "k1.server1:9093,k2.server1:9093,k3.server1:9093"
+    "security.protocol": "SASL_SSL"
+    "ssl.truststore.location": "kafka.client.truststore.jks"
+
+  "source2":
+    "bootstrap.servers": "k1.server2:9093,k2.server2:9093,k3.server2:9093"
+
+  "target":
+    "bootstrap.servers": "k1.server3:9093,k2.server3:9093,k3.server3:9093"
+
+
+
+traffic:
+  - from: source1
+    to: target
+    connectorName: mm2-msc-source1
+    mm2OffsetsTopic: "mm2-kafka-connect-offsets"
+    topics:
+      - topic_name1
+      - topic_name2
+
+  - from: source2
+    to: target
+    connectorName: mm2-msc-source2
+    mm2OffsetsTopic: "mm2-kafka-connect-offsets"
+    topics:
+      - topic_name1
+      - topic_name2
