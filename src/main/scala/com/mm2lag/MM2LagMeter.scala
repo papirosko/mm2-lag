@@ -74,7 +74,10 @@ class MM2LagMeter @Inject()(conf: AppConf,
 
       case Right(clusters) =>
         log.info("Loaded clusters: \n" + clusters.clusters.map { case (clusterAlias, clusterInfo) =>
-          s" - $clusterAlias: $clusterInfo"
+          s" - $clusterAlias:\n" + clusterInfo.toSeq.sortBy(_._1).map { case (param, value) =>
+            val masked = if (param.startsWith("ssl") || param.startsWith("sasl")) "***" else value
+            s"   - $param: $masked"
+          }.mkString("\n")
         }.mkString("\n"))
 
 
