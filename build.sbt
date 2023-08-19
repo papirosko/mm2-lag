@@ -98,11 +98,13 @@ Docker / packageName := env.get("CI_REGISTRY_IMAGE").map { v =>
 }.getOrElse(name.value)
 dockerBaseImage := "openjdk:17-jdk-slim"
 dockerExposedPorts := Seq(8080)
-dockerAlias := dockerAlias.value.withTag(env.get("CI_COMMIT_SHORT_SHA")
-  .orElse(env.getOrElse("CI_COMMIT_REF_SLUG", gitBranch) match {
-    case "main" => Some("latest")
-    case other => Some(other)
-  })
+dockerAlias := dockerAlias.value.withTag(
+  env.get("DOCKER_TAG")
+    .orElse(env.get("CI_COMMIT_SHORT_SHA"))
+    .orElse(env.getOrElse("CI_COMMIT_REF_SLUG", gitBranch) match {
+      case "main" => Some("latest")
+      case other => Some(other)
+    })
 )
 dockerRepository := Some(dockerRegistry).filter(_ != "")
 daemonUser := "docker"
