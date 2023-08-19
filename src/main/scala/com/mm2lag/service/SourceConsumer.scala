@@ -33,8 +33,8 @@ class SourceConsumer(val name: ClusterAlias,
   private val thread: Thread = new Thread() {
     override def run(): Unit = {
 
-      log.info(s"Collecting offset in kafka cluster ${name.name} from topics: ${topics.mkString(", ")}" +
-        s"as a consumer group='${appConf.kafka.consumerGroup}'.")
+      log.info(s"Collecting offset in kafka cluster ${name.name} from topics: [${topics.mkString(", ")}]" +
+        s" as a consumer group='${appConf.kafka.consumerGroup}'.")
 
       while (running.get()) {
         try {
