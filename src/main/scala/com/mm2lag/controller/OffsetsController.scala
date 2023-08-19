@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.{GET, Path, Produces}
 
+import java.util.Date
+
 @Path("/api")
 @Tag(name = "offsets")
 class OffsetsController @Inject()(offsetsStore: OffsetsStore,
                                   clustersService: ClustersService) extends Directives {
 
-  val route: Route = sourceForClusterPerTopic ~ targetForClusterPerTopic ~ lagPerTopic ~ prometheusLag
+  val route: Route = sourceForClusterPerTopic ~ targetForClusterPerTopic ~ lagPerTopic ~ prometheusLag ~ lagPerPartition
 
   @GET()
   @Path("source_offsets_per_topic")
@@ -70,7 +72,7 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
             ContentTypes.`text/plain(UTF-8)`,
             perTopic.iterator.toSeq.sortBy(_._1.name).map { case (topic, partitions) =>
               partitions.sortBy(_.key.partition)
-                .map(p => s"${topic.name}/${p.key.partition}: ${p.offset}")
+                .map(p => s"${topic.name}/${p.key.partition}: ${p.offset} (${new Date(p.ts)})")
                 .mkString("\n")
             }.mkString("\n")
           )
@@ -110,6 +112,43 @@ class OffsetsController @Inject()(offsetsStore: OffsetsStore,
             ContentTypes.`text/plain(UTF-8)`,
             perTopic.toSeq.sortBy(_._1.name).map { case (topic, lag) =>
               s"${topic.name}: $lag"
+            }.mkString("\n")
+          )
+        }
+      }
+    }
+  }
+
+
+  @GET()
+  @Path("lag_per_partition")
+  @Produces(Array(MediaType.TEXT_PLAIN))
+  @Parameter(
+    name = "cluster",
+    in = ParameterIn.QUERY,
+    description = "Cluster alias",
+    required = true,
+    content = Array(new Content(schema = new Schema(`type` = "String")))
+  )
+  @Operation(summary = "offsets per topic")
+  def lagPerPartition: Route = path("api" / "lag_per_partition") {
+    get {
+      parameter("cluster") { cluster =>
+        complete {
+          val sourceOffsets = offsetsStore.offsetsForCluster(ClusterAlias(cluster))
+          val targetOffsets = offsetsStore.targetForCluster(ClusterAlias(cluster))
+            .groupMapReduce(_.key)(_.offset) { case (a, _) => a }
+
+          val perTopic = sourceOffsets.map { sourcePartition =>
+            sourcePartition.key -> offsetsStore.lagForPartition(sourcePartition.key).getOrElse {
+              val targetOffset = targetOffsets.getOrElse(sourcePartition.key, 0L)
+              sourcePartition.offset - targetOffset
+            }
+          }
+          HttpEntity(
+            ContentTypes.`text/plain(UTF-8)`,
+            perTopic.sortBy(p => (p._1.topic.name, p._1.partition)).map { case (p, lag) =>
+              s"${p.topic.name}/${p.partition}: $lag"
             }.mkString("\n")
           )
         }

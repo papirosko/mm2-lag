@@ -11,5 +11,6 @@ case class PartitionKey(clusterAlias: ClusterAlias,
                         partition: Int)
 
 case class PartitionOffsetInfo(key: PartitionKey,
-                               offset: Long)
+                               offset: Long,
+                               ts: Long = System.currentTimeMillis())
 

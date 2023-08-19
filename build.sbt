@@ -2,7 +2,7 @@ import sbt.Keys._
 import scala.collection.JavaConverters._
 import scala.sys.process.Process
 
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / version := "0.2.0-SNAPSHOT"
 
 ThisBuild / scalaVersion := "2.13.7"
 

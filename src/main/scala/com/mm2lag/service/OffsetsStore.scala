@@ -12,7 +12,7 @@ class OffsetsStore extends MetricsSupport {
 
 
   private val sourceOffsets = new AtomicReference[Map[ClusterAlias, Map[TopicName, Seq[PartitionOffsetInfo]]]](Map.empty)
-  private val targetOffsets = new ConcurrentHashMap[PartitionKey, Long]()
+  private val targetOffsets = new ConcurrentHashMap[PartitionKey, OffsetWithTime]()
   private val lagOnCommitTime = new ConcurrentHashMap[PartitionKey, Long]()
   private val lagWriteLock = new ReentrantLock()
 
@@ -42,7 +42,7 @@ class OffsetsStore extends MetricsSupport {
       // recalc the lag with the fresh data
       offsets.foreach { sourceOffset =>
         Option(targetOffsets.get(sourceOffset.key))
-          .map(targetOffset => sourceOffset.offset - targetOffset)
+          .map(targetOffset => sourceOffset.offset - targetOffset.offset)
           .filter(_ >= 0)
           .foreach { lag =>
             lagOnCommitTime.putIfAbsent(sourceOffset.key, lag)
@@ -55,7 +55,7 @@ class OffsetsStore extends MetricsSupport {
 
 
   def submitTargetOffset(partitionOffsetInfo: PartitionOffsetInfo): Unit = timer("submitTargetOffset").time {
-    targetOffsets.put(partitionOffsetInfo.key, partitionOffsetInfo.offset)
+    targetOffsets.put(partitionOffsetInfo.key, OffsetWithTime(partitionOffsetInfo.offset, partitionOffsetInfo.ts))
 
     try {
       lagWriteLock.lock()
@@ -91,7 +91,7 @@ class OffsetsStore extends MetricsSupport {
 
   def targetForCluster(cluster: ClusterAlias): Seq[PartitionOffsetInfo] = {
     targetOffsets.entrySet().asScala.filter(_.getKey.clusterAlias == cluster)
-      .map(x => PartitionOffsetInfo(key = x.getKey, offset = x.getValue)).toSeq
+      .map(x => PartitionOffsetInfo(key = x.getKey, offset = x.getValue.offset, ts = x.getValue.ts)).toSeq
   }
 
   def lagForPartition(key: PartitionKey): Option[Long] = {
@@ -99,3 +99,6 @@ class OffsetsStore extends MetricsSupport {
   }
 
 }
+
+
+case class OffsetWithTime(offset: Long, ts: Long)

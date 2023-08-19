@@ -78,17 +78,18 @@ class TargetConsumer(val name: ClusterAlias,
             pInfo <- keyJson.drop(1).headOption.map(_.as[PartitionMMKey])
               .getOrElse(Left(DecodingFailure("Not enough elements in key json array", Nil)));
             offset <- parse(record.value()).flatMap(_.as[OffsetInfo])
-          ) yield (pInfo, offset)
+          ) yield (pInfo, offset, record.timestamp())
 
           jsonValues match {
-            case Right((pInfo, offset)) =>
+            case Right((pInfo, offset, recordTs)) =>
               offsetsStore.submitTargetOffset(PartitionOffsetInfo(
                 key = PartitionKey(
                   topic = TopicName(pInfo.topic),
                   partition = pInfo.partition,
                   clusterAlias = ClusterAlias(pInfo.cluster)
                 ),
-                offset = offset.offset
+                offset = offset.offset,
+                ts = recordTs
               ))
 
             case Left(error) =>
