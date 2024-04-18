@@ -83,6 +83,10 @@ DOCKER_REGISTRY="gitlab.server:5050" sbt docker:publish
 
 
 
+You can also use docker image from docker.io: https://hub.docker.com/r/papirosko/mm2-lag
+
+
+
 # Development
 
 Build and publish (any branch):
