@@ -108,3 +108,4 @@ dockerAlias := dockerAlias.value.withTag(
 )
 dockerRepository := Some(dockerRegistry).filter(_ != "")
 daemonUser := "docker"
+dockerUpdateLatest := env.getOrElse("CI_COMMIT_REF_SLUG", gitBranch) == "main"

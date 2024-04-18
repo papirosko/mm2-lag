@@ -80,3 +80,17 @@ Use this to push image to remote registry:
 ```shell
 DOCKER_REGISTRY="gitlab.server:5050" sbt docker:publish
 ```
+
+
+
+# Development
+
+Build and publish (any branch):
+```shell
+DOCKER_REGISTRY="docker.io" CI_REGISTRY_IMAGE="docker.io/papirosko/mm2-lag" sbt clean docker:publish
+```
+
+For `main` branch it will deploy docker image with tag equal to the app version, so you need to increase app version
+before publishing. Also it will update `latest` tag.
+
+For any other branch it will deploy docker image with the branch name as a tag.
