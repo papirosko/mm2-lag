@@ -102,7 +102,7 @@ dockerAlias := dockerAlias.value.withTag(
   env.get("DOCKER_TAG")
     .orElse(env.get("CI_COMMIT_SHORT_SHA"))
     .orElse(env.getOrElse("CI_COMMIT_REF_SLUG", gitBranch) match {
-      case "main" => Some("latest")
+      case "main" => Some(version.value)
       case other => Some(other)
     })
 )

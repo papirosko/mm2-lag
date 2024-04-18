@@ -2,7 +2,8 @@ package com.mm2lag.config
 
 case class TrafficInfo(from: String,
                        to: String,
-                       topics: Seq[String],
+                       topics: Option[Seq[String]],
+                       topicsPatterns: Option[Seq[String]],
                        connectorName: String,
                        mm2OffsetsTopic: String)
 

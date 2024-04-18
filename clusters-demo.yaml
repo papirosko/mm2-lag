@@ -17,9 +17,11 @@ traffic:
     to: target
     connectorName: mm2-msc-source1
     mm2OffsetsTopic: "mm2-kafka-connect-offsets"
+    # you can use both `topics` and `topicsPatterns` together
     topics:
-      - topic_name1
-      - topic_name2
+      - another_topic
+    topicsPatterns: # use regular java regex syntax
+      - topic_name.*
 
   - from: source2
     to: target
