@@ -2,7 +2,7 @@ import sbt.Keys._
 import scala.collection.JavaConverters._
 import scala.sys.process.Process
 
-ThisBuild / version := "0.3.0"
+ThisBuild / version := "1.0.0"
 
 ThisBuild / scalaVersion := "2.13.7"
 
@@ -96,7 +96,7 @@ Docker / packageName := env.get("CI_REGISTRY_IMAGE").map { v =>
     v
   }
 }.getOrElse(name.value)
-dockerBaseImage := "openjdk:17-jdk-slim"
+dockerBaseImage := "eclipse-temurin:17-jdk"
 dockerExposedPorts := Seq(8080)
 dockerAlias := dockerAlias.value.withTag(
   env.get("DOCKER_TAG")
